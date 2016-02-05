@@ -39,6 +39,11 @@
       $submitButton.prop('disabled', true)
     }
 
+    var formHasId = Boolean($form.prop('id'))
+    if (!formHasId) {
+      $form.prop('id', 'braintree-hosted-fields-bootstrap-form-' + $.now())
+    }
+
     var braintreeSetupOptions = {
       id: $form.prop('id'),
       enableCORS: true,

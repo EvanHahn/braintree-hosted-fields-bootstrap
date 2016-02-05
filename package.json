@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "main": "braintree-hosted-fields-bootstrap.js",
+  "scripts": {
+    "lint": "standard braintree-hosted-fields-bootstrap.js"
+  },
+  "devDependencies": {
+    "standard": "^5.4.1"
+  }
+}

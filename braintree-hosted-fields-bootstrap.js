@@ -34,9 +34,9 @@
             'font-family': '"Helvetica Neue", Helvetica, Arial, sans-serif',
             'font-size': '14px'
           },
-          '::-moz-placeholder': { 'color': '#999' },
-          ':-ms-input-placeholder': { 'color': '#999' },
-          '::-webkit-input-placeholder': { 'color': '#999' }
+          '::-moz-placeholder': { color: '#999' },
+          ':-ms-input-placeholder': { color: '#999' },
+          '::-webkit-input-placeholder': { color: '#999' }
         }
       }
     }

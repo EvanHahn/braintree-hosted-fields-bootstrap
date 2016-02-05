@@ -11,8 +11,6 @@
     'postalCode'
   ]
 
-  var hasAddedCss = false
-
   $.fn.hostedFields = function (options) {
     options = $.extend({}, $.fn.hostedFields.defaults, options)
 
@@ -39,6 +37,15 @@
           '::-moz-placeholder': { color: '#999' },
           ':-ms-input-placeholder': { color: '#999' },
           '::-webkit-input-placeholder': { color: '#999' }
+        },
+        onFieldEvent: function (event) {
+          var $target = $(event.target.container)
+          var $parentGroup = $target.parents('.form-group')
+
+          $parentGroup.toggleClass('has-success', event.isValid)
+          $parentGroup.toggleClass('has-error', !event.isPotentiallyValid)
+
+          options.onFieldEvent.apply(this, arguments)
         }
       }
     }
@@ -58,42 +65,49 @@
 
     bt.setup(options.authorization, 'custom', braintreeSetupOptions)
 
-    if (!hasAddedCss) {
-      hasAddedCss = true
-
-      var styleEl = document.createElement('style')
-      styleEl.innerHTML = [
-        '.braintree-hosted-fields-bootstrap-container.braintree-hosted-fields-focused {',
-        'border-color: #66afe9;',
-        'outline: 0;',
-        '-webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6);',
-        'box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6);',
-        '}',
-        '.braintree-hosted-fields-bootstrap-container.braintree-hosted-fields-valid {',
-        'border-color: #3c763d;',
-        '-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);',
-        'box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);',
-        '}',
-        '.braintree-hosted-fields-bootstrap-container.braintree-hosted-fields-valid.braintree-hosted-fields-focused {',
-        'border-color: #2b542c;',
-        '-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px #67b168;',
-        'box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px #67b168;',
-        '}',
-        '.braintree-hosted-fields-bootstrap-container.braintree-hosted-fields-invalid {',
-        'border-color: #a94442;',
-        '-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);',
-        'box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);',
-        '}',
-        '.braintree-hosted-fields-bootstrap-container.braintree-hosted-fields-invalid.braintree-hosted-fields-focused {',
-        'border-color: #843534;',
-        '-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px #ce8483;',
-        'box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px #ce8483;',
-        '}'
-      ].join('')
-
-      $('head').append(styleEl)
-    }
+    addCss()
   }
 
-  $.fn.hostedFields.defaults = {}
+  $.fn.hostedFields.defaults = {
+    onFieldEvent: $.noop
+  }
+
+  var hasAddedCss = false
+  function addCss () {
+    if (hasAddedCss) { return }
+
+    hasAddedCss = true
+
+    var styleEl = document.createElement('style')
+    styleEl.innerHTML = [
+      '.braintree-hosted-fields-bootstrap-container.braintree-hosted-fields-focused {',
+      'border-color: #66afe9;',
+      'outline: 0;',
+      '-webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6);',
+      'box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6);',
+      '}',
+      '.braintree-hosted-fields-bootstrap-container.braintree-hosted-fields-valid {',
+      'border-color: #3c763d;',
+      '-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);',
+      'box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);',
+      '}',
+      '.braintree-hosted-fields-bootstrap-container.braintree-hosted-fields-valid.braintree-hosted-fields-focused {',
+      'border-color: #2b542c;',
+      '-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px #67b168;',
+      'box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px #67b168;',
+      '}',
+      '.braintree-hosted-fields-bootstrap-container.braintree-hosted-fields-invalid {',
+      'border-color: #a94442;',
+      '-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);',
+      'box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);',
+      '}',
+      '.braintree-hosted-fields-bootstrap-container.braintree-hosted-fields-invalid.braintree-hosted-fields-focused {',
+      'border-color: #843534;',
+      '-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px #ce8483;',
+      'box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px #ce8483;',
+      '}'
+    ].join('')
+
+    $('head').append(styleEl)
+  }
 })(jQuery)

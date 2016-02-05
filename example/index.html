@@ -9,12 +9,13 @@
 </head>
 <body>
 
-<div class="container">
+<div class="container"><div class="row">
   <h1>Braintree Hosted Fields + Bootstrap example</h1>
 
-  <form id="my-checkout-form">
+  <form class="col-md-6">
+    <h2>Checkout</h2>
     <div class="form-group">
-      <label class="control-label" for="email">Email address</label>
+      <label class="control-label" for="email">Email address (<em>not</em> a hosted field)</label>
       <input type="email" class="form-control" id="email" placeholder="foo@boo.biz">
     </div>
 
@@ -34,10 +35,55 @@
     </div>
 
     <div class="form-group">
-      <button type="submit" class="btn btn-primary">Pay</button>
+      <button type="submit" class="btn btn-primary btn-lg">Pay</button>
     </div>
   </form>
-</div>
+
+  <div class="col-md-6">
+    <h4>Form HTML</h4>
+    <pre>&lt;form id="my-checkout-form"&gt;
+
+&lt;div class="form-group"&gt;
+  &lt;label class="control-label" for="email"&gt;Email address&lt;/label&gt;
+  &lt;input type="email" class="form-control" id="email" placeholder="foo@boo.biz"&gt;
+&lt;/div&gt;
+
+&lt;div class="form-group"&gt;
+  &lt;label class="control-label" for="hosted-field-number"&gt;Credit Card Number&lt;/label&gt;
+  &lt;div id="hosted-field-number" placeholder="4111 1111 1111 1111"&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="form-group"&gt;
+  &lt;label class="control-label" for="hosted-field-cvv"&gt;CVV&lt;/label&gt;
+  &lt;div id="hosted-field-cvv" placeholder="123"&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="form-group"&gt;
+  &lt;label class="control-label" for="hosted-field-expiration-date"&gt;Expiration Date&lt;/label&gt;
+  &lt;div id="hosted-field-expiration-date" placeholder="04 / 2020"&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="form-group"&gt;
+  &lt;button type="submit" class="btn btn-primary"&gt;Pay&lt;/button&gt;
+&lt;/div&gt;
+
+&lt;/form&gt;</pre>
+
+    <h4>JavaScript files to load</h4>
+    <pre>&lt;script src="jquery.js"&gt;&lt;/script&gt;
+&lt;script src="bootstrap.js"&gt;&lt;/script&gt;
+&lt;script src="braintree.js"&gt;&lt;/script&gt;
+&lt;script src="braintree-hosted-fields-bootstrap.js"&gt;&lt;/script&gt;</pre>
+
+    <h4>JavaScript</h4>
+    <pre>$('#my-checkout-form').hostedFields({
+  authorization: 'YOUR BRAINTREE CLIENT TOKEN',
+  number: '#hosted-field-number',
+  cvv: '#hosted-field-cvv',
+  expirationDate: '#hosted-field-expiration-date'
+})</pre>
+  </div>
+</div></div>
 
 <script src="vendor/jquery.min.js"></script>
 <script src="vendor/bootstrap.min.js"></script>

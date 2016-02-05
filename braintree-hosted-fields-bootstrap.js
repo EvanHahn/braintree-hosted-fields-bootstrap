@@ -1,4 +1,4 @@
-/* global $ */
+/* global jQuery */
 
 ;(function ($) {
   var REQUIRED_PROPERTIES = ['authorization']

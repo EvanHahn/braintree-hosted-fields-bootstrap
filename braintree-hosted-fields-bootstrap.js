@@ -10,6 +10,11 @@
     'expirationYear',
     'postalCode'
   ]
+  var PASS_THROUGH_TO_SETUP = [
+    'coinbase',
+    'paypal',
+    'onPaymentMethodReceived'
+  ]
 
   $.fn.hostedFields = function (options) {
     options = $.extend({}, $.fn.hostedFields.defaults, options)
@@ -49,6 +54,10 @@
         }
       }
     }
+
+    $.each(PASS_THROUGH_TO_SETUP, function (i, option) {
+      braintreeSetupOptions[option] = options[option]
+    })
 
     $.each(FIELD_NAMES, function (i, field) {
       if (!(field in options)) { return }

@@ -1,3 +1,8 @@
+/* Braintree Hosted Fields + Bootstrap
+ * by Evan Hahn
+ * licensed under the Unlicense
+ */
+
 /* global jQuery */
 
 ;(function ($) {

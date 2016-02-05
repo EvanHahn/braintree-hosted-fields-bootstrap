@@ -13,7 +13,9 @@
   var PASS_THROUGH_TO_SETUP = [
     'coinbase',
     'paypal',
-    'onPaymentMethodReceived'
+    'dataCollector',
+    'onPaymentMethodReceived',
+    'onError'
   ]
 
   $.fn.hostedFields = function (options) {
@@ -31,8 +33,15 @@
       }
     })
 
+    var $submitButton
+    if (options.disableSubmitUntilReady) {
+      $submitButton = $form.find('[type="submit"]')
+      $submitButton.prop('disabled', true)
+    }
+
     var braintreeSetupOptions = {
       id: $form.prop('id'),
+      enableCORS: true,
       hostedFields: {
         styles: {
           input: {
@@ -52,6 +61,13 @@
 
           options.onFieldEvent.apply(this, arguments)
         }
+      },
+      onReady: function () {
+        if (options.disableSubmitUntilReady) {
+          $submitButton.prop('disabled', false)
+        }
+
+        options.onReady.apply(this, arguments)
       }
     }
 
@@ -78,7 +94,9 @@
   }
 
   $.fn.hostedFields.defaults = {
-    onFieldEvent: $.noop
+    disableSubmitUntilReady: true,
+    onFieldEvent: $.noop,
+    onReady: $.noop
   }
 
   var hasAddedCss = false

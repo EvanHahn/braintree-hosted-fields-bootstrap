@@ -3,7 +3,7 @@
  * licensed under the Unlicense
  */
 
-/* global jQuery */
+/* global jQuery, braintree */
 
 ;(function ($) {
   var REQUIRED_PROPERTIES = ['authorization']
@@ -15,44 +15,38 @@
     'expirationYear',
     'postalCode'
   ]
-  var PASS_THROUGH_TO_SETUP = [
-    'coinbase',
-    'paypal',
-    'dataCollector',
-    'onPaymentMethodReceived',
-    'onError'
-  ]
 
   $.fn.hostedFields = function (options) {
     options = $.extend({}, $.fn.hostedFields.defaults, options)
 
     var $form = this
+    var formEl = $form.get(0)
 
     var bt = options.braintree || window.braintree
     if (!bt) {
-      throw new Error('Cannot find braintree')
+      throw new Error('Cannot find braintree. Make sure to load the Client and Hosted Fields files!')
+    } else if (!bt.client) {
+      throw new Error('Cannot find braintree.client. Make sure to load it!')
+    } else if (!bt.hostedFields) {
+      throw new Error('Cannot find braintree.hostedFields. Make sure to load it!')
     }
-    $.each(REQUIRED_PROPERTIES, function (i, property) {
+
+    REQUIRED_PROPERTIES.forEach(function (property) {
       if (!(property in options)) {
         throw new Error(property + ' option not found')
       }
     })
 
-    var $submitButton
-    if (options.disableSubmitUntilReady) {
-      $submitButton = $form.find('[type="submit"]')
-      $submitButton.prop('disabled', true)
-    }
+    var $submitButton = $form.find('[type="submit"]')
+    $submitButton.prop('disabled', true)
 
-    var formHasId = Boolean($form.prop('id'))
-    if (!formHasId) {
-      $form.prop('id', 'braintree-hosted-fields-bootstrap-form-' + $.now())
-    }
+    braintree.client.create({
+      authorization: options.authorization
+    }, function (clientErr, clientInstance) {
+      if (clientErr) { throw clientErr }
 
-    var braintreeSetupOptions = {
-      id: $form.prop('id'),
-      enableCORS: true,
-      hostedFields: {
+      braintree.hostedFields.create({
+        client: clientInstance,
         styles: {
           input: {
             'font-family': '"Helvetica Neue", Helvetica, Arial, sans-serif',
@@ -62,52 +56,59 @@
           ':-ms-input-placeholder': { color: '#999' },
           '::-webkit-input-placeholder': { color: '#999' }
         },
-        onFieldEvent: function (event) {
-          var $target = $(event.target.container)
-          var $parentGroup = $target.parents('.form-group')
+        fields: FIELD_NAMES.reduce(function (result, field) {
+          if (!(field in options)) { return result }
 
-          $parentGroup.toggleClass('has-success', event.isValid)
-          $parentGroup.toggleClass('has-error', !event.isPotentiallyValid)
+          var $fieldEl = $form.find(options[field])
 
-          options.onFieldEvent.apply(this, arguments)
-        }
-      },
-      onReady: function () {
-        if (options.disableSubmitUntilReady) {
-          $submitButton.prop('disabled', false)
-        }
+          $fieldEl.addClass('form-control').addClass('braintree-hosted-fields-bootstrap-container')
 
-        options.onReady.apply(this, arguments)
-      }
-    }
+          result[field] = {
+            selector: options[field],
+            placeholder: $fieldEl.attr('placeholder') || ''
+          }
+          return result
+        }, {})
+      }, function (hostedFieldsErr, hostedFieldsInstance) {
+        if (hostedFieldsErr) { throw hostedFieldsErr }
 
-    $.each(PASS_THROUGH_TO_SETUP, function (i, option) {
-      braintreeSetupOptions[option] = options[option]
+        addCss()
+
+        hostedFieldsInstance.on('validityChange', function (event) {
+          var field = event.fields[event.emittedBy]
+          var $parentGroup = $(field.container).parents('.form-group')
+
+          $parentGroup.toggleClass('has-success', field.isValid)
+          $parentGroup.toggleClass('has-error', !field.isPotentiallyValid)
+
+          $submitButton.prop('disabled', !isEverythingValid(event))
+        })
+
+        $form.on('submit', function (event) {
+          event.preventDefault()
+
+          $submitButton.prop('disabled', true)
+
+          hostedFieldsInstance.tokenize(function (tokenizeErr, tokenizedPayload) {
+            if (tokenizeErr) {
+              $submitButton.prop('disabled', false)
+              throw tokenizeErr
+            }
+
+            var $paymentMethodNonce = $(document.createElement('input'))
+            $paymentMethodNonce.attr('type', 'hidden')
+            $paymentMethodNonce.attr('name', 'payment_method_nonce')
+            $paymentMethodNonce.val(tokenizedPayload.nonce)
+            $form.append($paymentMethodNonce)
+
+            formEl.submit()
+          })
+        })
+      })
     })
-
-    $.each(FIELD_NAMES, function (i, field) {
-      if (!(field in options)) { return }
-
-      var $fieldEl = $form.find(options[field])
-
-      $fieldEl.addClass('form-control').addClass('braintree-hosted-fields-bootstrap-container')
-
-      braintreeSetupOptions.hostedFields[field] = {
-        selector: options[field],
-        placeholder: $fieldEl.attr('placeholder') || ''
-      }
-    })
-
-    bt.setup(options.authorization, 'custom', braintreeSetupOptions)
-
-    addCss()
   }
 
-  $.fn.hostedFields.defaults = {
-    disableSubmitUntilReady: true,
-    onFieldEvent: $.noop,
-    onReady: $.noop
-  }
+  $.fn.hostedFields.defaults = {}
 
   var hasAddedCss = false
   function addCss () {
@@ -146,5 +147,11 @@
     ].join('')
 
     $('head').append(styleEl)
+  }
+
+  function isEverythingValid (event) {
+    return Object.keys(event.fields).every(function (fieldKey) {
+      return event.fields[fieldKey].isValid
+    })
   }
 })(jQuery)
